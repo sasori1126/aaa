@@ -1,0 +1,9 @@
+
+project: axisforestryapi
+
+providers:
+  # you can mix and match many files
+  dotenv:
+    env_sync:
+      path: .env
+

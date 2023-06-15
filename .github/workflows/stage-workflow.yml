@@ -1,0 +1,72 @@
+name: CICD workflow
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - prod
+
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Install dependencies
+        run: |
+          go version
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Run build
+        run: go build -v ./...
+
+      - name: Run vet & lint
+        run: |
+          go vet ./...
+          staticcheck ./...
+
+      - name: Run test
+        run: go test -v ./...
+
+      - name: Slack notification
+        uses:  8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Docker registry
+        uses: docker/build-push-action@v3
+        with:
+          username: ${{ secrets.DOCKER_NAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: appslab/axisapi
+          
+      - name: Slack notification
+        uses:  8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()    
+          

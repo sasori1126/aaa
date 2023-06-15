@@ -1,0 +1,28 @@
+.fleet
+/.fleet
+.vscode
+/.vscode
+/.idea
+.idea
+.env
+/.env
+docs/tempFiles
+/docs/tempFiles
+tmp
+/tmp
+logs
+/logs
+/out
+out
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+.docs/tempFiles
+
+# Dependency directories (remove the comment below to include it)
+# vendor/

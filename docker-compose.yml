@@ -1,0 +1,50 @@
+version: "3.6"
+
+services:
+  axis:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env.local
+    ports:
+      - 9001:9001
+    volumes:
+      - .:/app
+
+  postgres:
+    environment:
+      - POSTGRES_DB=axis
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d axis -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    volumes:
+      - pg_data_account:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    ports:
+      - 6379:6379
+    volumes:
+      - redisdata:/data
+
+volumes:
+  pg_data_account:
+  redisdata:
